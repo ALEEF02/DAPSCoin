@@ -10,7 +10,6 @@
 #include "blockexplorer.h"
 #include "clientmodel.h"
 #include "guiutil.h"
-#include "historypage.h"
 #include "masternodeconfig.h"
 #include "multisenddialog.h"
 #include "optionsmodel.h"
@@ -44,12 +43,60 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
     explorerWindow = new BlockExplorer(this);
     transactionsPage = new QWidget(this);
     QVBoxLayout* vbox = new QVBoxLayout();
+
+    // Create Header with the same names as the other forms to be CSS-Id compatible
+    QFrame *frame_Header = new QFrame(transactionsPage);
+    frame_Header->setObjectName(QStringLiteral("frame_Header"));
+
+    QVBoxLayout* verticalLayout_8 = new QVBoxLayout(frame_Header);
+    verticalLayout_8->setObjectName(QStringLiteral("verticalLayout_8"));
+    verticalLayout_8->setContentsMargins(0, 0, 0, 0);
+
+    QHBoxLayout* horizontalLayout_Header = new QHBoxLayout();
+    horizontalLayout_Header->setObjectName(QStringLiteral("horizontalLayout_Header"));
+
+    QLabel* labelOverviewHeaderLeft = new QLabel(frame_Header);
+    labelOverviewHeaderLeft->setObjectName(QStringLiteral("labelOverviewHeaderLeft"));
+    labelOverviewHeaderLeft->setMinimumSize(QSize(464, 60));
+    labelOverviewHeaderLeft->setMaximumSize(QSize(16777215, 60));
+    labelOverviewHeaderLeft->setText(tr("HISTORY"));
+    QFont fontHeaderLeft;
+    fontHeaderLeft.setPointSize(20);
+    fontHeaderLeft.setBold(true);
+    fontHeaderLeft.setWeight(75);
+    labelOverviewHeaderLeft->setFont(fontHeaderLeft);
+
+    horizontalLayout_Header->addWidget(labelOverviewHeaderLeft);
+    QSpacerItem* horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+    horizontalLayout_Header->addItem(horizontalSpacer_3);
+
+    QLabel* labelOverviewHeaderRight = new QLabel(frame_Header);
+    labelOverviewHeaderRight->setObjectName(QStringLiteral("labelOverviewHeaderRight"));
+    labelOverviewHeaderRight->setMinimumSize(QSize(464, 60));
+    labelOverviewHeaderRight->setMaximumSize(QSize(16777215, 60));
+    labelOverviewHeaderRight->setText(QString());
+    QFont fontHeaderRight;
+    fontHeaderRight.setPointSize(14);
+    labelOverviewHeaderRight->setFont(fontHeaderRight);
+    labelOverviewHeaderRight->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+
+    horizontalLayout_Header->addWidget(labelOverviewHeaderRight);
+    horizontalLayout_Header->setStretch(0, 1);
+    horizontalLayout_Header->setStretch(2, 1);
+    verticalLayout_8->addLayout(horizontalLayout_Header);
+
     QHBoxLayout* hbox_buttons = new QHBoxLayout();
+    vbox->addWidget(frame_Header);
+
     transactionView = new TransactionView(this);
     vbox->addWidget(transactionView);
     QPushButton* exportButton = new QPushButton(tr("&Export"), this);
     exportButton->setToolTip(tr("Export the data in the current tab to a file"));
+#ifndef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
+    exportButton->setIcon(QIcon(":/icons/export"));
+#endif
     hbox_buttons->addStretch();
+
     // Sum of selected transactions
     QLabel* transactionSumLabel = new QLabel();                // Label
     transactionSumLabel->setObjectName("transactionSumLabel"); // Label ID as CSS-reference
@@ -64,15 +111,15 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
 
     hbox_buttons->addWidget(exportButton);
     vbox->addLayout(hbox_buttons);
+    transactionsPage->setLayout(vbox);
 
     receiveCoinsPage = new ReceiveCoinsDialog();
     sendCoinsPage = new SendCoinsDialog();
     optionsPage = new OptionsPage();
-    historyPage = new HistoryPage();
-    masternodeListPage = new MasternodeList();
+     masternodeListPage = new MasternodeList();
 
     addWidget(overviewPage);
-    addWidget(historyPage);
+    addWidget(transactionsPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
     addWidget(optionsPage);
@@ -90,6 +137,9 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
 
     // Clicking on "Export" allows to export the transaction list
     connect(exportButton, SIGNAL(clicked()), transactionView, SLOT(exportClicked()));
+
+    // Pass through messages from sendCoinsPage
+    connect(sendCoinsPage, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
 
     // Pass through messages from transactionView
     connect(transactionView, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
@@ -140,7 +190,6 @@ void WalletView::setWalletModel(WalletModel* walletModel)
     transactionView->setModel(walletModel);
     overviewPage->setWalletModel(walletModel);
     masternodeListPage->setWalletModel(walletModel);
-    historyPage->setModel(walletModel);
     receiveCoinsPage->setModel(walletModel);
     sendCoinsPage->setModel(walletModel);
     optionsPage->setModel(walletModel);
@@ -193,13 +242,8 @@ void WalletView::gotoOverviewPage()
 
 void WalletView::gotoHistoryPage()
 {
-    int lastTime = GetAdjustedTime();
-    setCurrentWidget(historyPage);
-    if (GetAdjustedTime() - lastTime < 30) {
-        historyPage->updateTableData();
-    }
+    setCurrentWidget(transactionsPage);
 }
-
 
 void WalletView::gotoBlockExplorerPage()
 {

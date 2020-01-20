@@ -179,10 +179,6 @@ TransactionView::TransactionView(QWidget* parent) : QWidget(parent), model(0), t
     connect(hideOrphansAction, SIGNAL(toggled(bool)), this, SLOT(updateHideOrphans(bool)));
 }
 
-TransactionView::~TransactionView() {
-    delete contextMenu;
-}
-
 void TransactionView::setModel(WalletModel* model)
 {
     QSettings settings;
@@ -190,7 +186,6 @@ void TransactionView::setModel(WalletModel* model)
     if (model) {
         transactionProxyModel = new TransactionFilterProxy(this);
         transactionProxyModel->setSourceModel(model->getTransactionTableModel());
-        transactionProxyModel->setSortRole(Qt::EditRole);
         transactionProxyModel->setDynamicSortFilter(true);
         transactionProxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
         transactionProxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
@@ -202,8 +197,8 @@ void TransactionView::setModel(WalletModel* model)
         transactionView->setAlternatingRowColors(true);
         transactionView->setSelectionBehavior(QAbstractItemView::SelectRows);
         transactionView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-        transactionView->horizontalHeader()->setSortIndicator(TransactionTableModel::Date, Qt::DescendingOrder);
         transactionView->setSortingEnabled(true);
+        transactionView->sortByColumn(TransactionTableModel::Date, Qt::DescendingOrder);
         transactionView->verticalHeader()->hide();
 
         transactionView->setColumnWidth(TransactionTableModel::Status, STATUS_COLUMN_WIDTH);
@@ -335,6 +330,7 @@ void TransactionView::updateHideOrphans(bool fHide)
 
 }
 
+
 void TransactionView::chooseWatchonly(int idx)
 {
     if (!transactionProxyModel)
@@ -401,7 +397,7 @@ void TransactionView::exportClicked()
     if (fExport) {
         Q_EMIT message(tr("Exporting Successful"), tr("The transaction history was successfully saved to %1.").arg(filename),
                      CClientUIInterface::MSG_INFORMATION);
-    } 
+    }
     else {
         Q_EMIT message(tr("Exporting Failed"), tr("There was an error trying to save the transaction history to %1.").arg(filename),
                      CClientUIInterface::MSG_ERROR);
