@@ -526,7 +526,7 @@ bool CWallet::RescanAfterUnlock(int fromHeight)
     return true;
 }
 
-bool CWallet::Unlock(const SecureString& strWalletPassphrase, bool anonymizeOnly)
+bool CWallet::Unlock(const SecureString& strWalletPassphrase, bool stakingOnly)
 {
     CCrypter crypter;
     CKeyingMaterial vMasterKey;
@@ -540,7 +540,7 @@ bool CWallet::Unlock(const SecureString& strWalletPassphrase, bool anonymizeOnly
             if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, vMasterKey))
                 continue; // try another master key
             if (CCryptoKeyStore::Unlock(vMasterKey)) {
-                fWalletUnlockAnonymizeOnly = anonymizeOnly;
+                fWalletUnlockStaking = stakingOnly;
                 rescanNeeded = true;
                 break;
             }
@@ -5729,7 +5729,7 @@ void CWallet::SetNull()
     nNextResend = 0;
     nLastResend = 0;
     nTimeFirstKey = 0;
-    fWalletUnlockAnonymizeOnly = false;
+    fWalletUnlockStaking = false;
     walletStakingInProgress = false;
     fBackupMints = false;
 

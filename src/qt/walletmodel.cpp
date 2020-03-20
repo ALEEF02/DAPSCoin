@@ -274,8 +274,8 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         return OK;
     }
 
-    if (isAnonymizeOnlyUnlocked()) {
-        return AnonymizeOnlyUnlocked;
+    if (isUnlockedForStaking()) {
+        return StakingOnlyUnlocked;
     }
 
     QSet<QString> setAddress; // Used to detect duplicates
@@ -392,8 +392,8 @@ WalletModel::EncryptionStatus WalletModel::getEncryptionStatus() const
 {
     if (!wallet->IsLocked()) {
         return Unencrypted;
-    } else if (wallet->fWalletUnlockAnonymizeOnly) {
-        return UnlockedForAnonymizationOnly;
+    } else if (wallet->fWalletUnlockStaking) {
+        return UnlockedForStaking;
     } else if (wallet->IsLocked()) {
         return Locked;
     } else {
@@ -416,7 +416,7 @@ bool WalletModel::setWalletLocked(bool locked, const SecureString& passPhrase, b
 {
     if (locked) {
         // Lock
-        wallet->fWalletUnlockAnonymizeOnly = false;
+        wallet->fWalletUnlockStaking = false;
         return wallet->Lock();
     } else {
         // Unlock
@@ -427,7 +427,7 @@ bool WalletModel::setWalletLocked(bool locked, const SecureString& passPhrase, b
 bool WalletModel::lockForStakingOnly(const SecureString& passPhrase)
 {
     if (!wallet->IsLocked()) {
-        wallet->fWalletUnlockAnonymizeOnly = true;
+        wallet->fWalletUnlockStaking = true;
         return true;
     } else {
         setWalletLocked(false, passPhrase, true);
@@ -435,9 +435,9 @@ bool WalletModel::lockForStakingOnly(const SecureString& passPhrase)
     return false;
 }
 
-bool WalletModel::isAnonymizeOnlyUnlocked()
+bool WalletModel::isUnlockedForStaking()
 {
-    return wallet->fWalletUnlockAnonymizeOnly;
+    return wallet->fWalletUnlockStaking;
 }
 
 bool WalletModel::changePassphrase(const SecureString& oldPass, const SecureString& newPass)
@@ -533,14 +533,14 @@ void WalletModel::unsubscribeFromCoreSignals()
 WalletModel::UnlockContext WalletModel::requestUnlock()
 {
     const WalletModel::EncryptionStatus status_before = getEncryptionStatus();
-    if (status_before == Locked || status_before == UnlockedForAnonymizationOnly)
+    if (status_before == Locked || status_before == UnlockedForStaking)
     {
         // Request UI to unlock wallet
         Q_EMIT requireUnlock();
     }
     // If wallet is still locked, unlock was failed or cancelled, mark context as invalid
     const WalletModel::EncryptionStatus status_after = getEncryptionStatus();
-    bool valid = (status_after != Locked && status_after != UnlockedForAnonymizationOnly);
+    bool valid = (status_after != Locked && status_after != UnlockedForStaking);
 
     return UnlockContext(this, valid, status_before);
 }
@@ -549,7 +549,7 @@ WalletModel::UnlockContext::UnlockContext(WalletModel *_wallet, bool _valid, con
         wallet(_wallet),
         valid(_valid),
         was_status(status_before),
-        relock(status_before == Locked || status_before == UnlockedForAnonymizationOnly)
+        relock(status_before == Locked || status_before == UnlockedForStaking)
 {
 }
 
@@ -557,7 +557,7 @@ WalletModel::UnlockContext::~UnlockContext()
 {
     if (valid && relock) {
         if (was_status == Locked) wallet->setWalletLocked(true);
-        else if (was_status == UnlockedForAnonymizationOnly) wallet->lockForStakingOnly();
+        else if (was_status == UnlockedForStaking) wallet->lockForStakingOnly();
     }
 }
 
