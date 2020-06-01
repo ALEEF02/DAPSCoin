@@ -186,10 +186,6 @@ void WalletModel::emitBalanceChanged()
 
 bool WalletModel::checkBalanceChanged()
 {
-    TRY_LOCK(cs_main, lockMain);
-    if (!lockMain) return false;
-    TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
-    if (!lockWallet) return false;
     CAmount newBalance = getBalance();
     CAmount newUnconfirmedBalance = getUnconfirmedBalance();
     CAmount newImmatureBalance = getImmatureBalance();
