@@ -10,7 +10,6 @@
 #include "blockexplorer.h"
 #include "clientmodel.h"
 #include "guiutil.h"
-#include "historypage.h"
 #include "masternodeconfig.h"
 #include "multisenddialog.h"
 #include "optionsmodel.h"
@@ -68,11 +67,11 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
     receiveCoinsPage = new ReceiveCoinsDialog();
     sendCoinsPage = new SendCoinsDialog();
     optionsPage = new OptionsPage();
-    historyPage = new HistoryPage();
+    //historyPage = new HistoryPage();
     masternodeListPage = new MasternodeList();
 
     addWidget(overviewPage);
-    addWidget(historyPage);
+    //addWidget(historyPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
     addWidget(optionsPage);
@@ -103,7 +102,7 @@ void WalletView::setBitcoinGUI(BitcoinGUI* gui)
 {
     if (gui) {
         // Clicking on a transaction on the overview page simply sends you to transaction history page
-        connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), gui, SLOT(gotoHistoryPage()));
+        //connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), gui, SLOT(gotoHistoryPage()));
 
         // Receive and report messages
         connect(this, SIGNAL(message(QString, QString, unsigned int)), gui, SLOT(message(QString, QString, unsigned int)));
@@ -140,7 +139,7 @@ void WalletView::setWalletModel(WalletModel* walletModel)
     transactionView->setModel(walletModel);
     overviewPage->setWalletModel(walletModel);
     masternodeListPage->setWalletModel(walletModel);
-    historyPage->setModel(walletModel);
+    //historyPage->setModel(walletModel);
     receiveCoinsPage->setModel(walletModel);
     sendCoinsPage->setModel(walletModel);
     optionsPage->setModel(walletModel);
@@ -193,11 +192,11 @@ void WalletView::gotoOverviewPage()
 
 void WalletView::gotoHistoryPage()
 {
-    int lastTime = GetAdjustedTime();
+    /*int lastTime = GetAdjustedTime();
     setCurrentWidget(historyPage);
     if (GetAdjustedTime() - lastTime < 30) {
         historyPage->updateTableData();
-    }
+    }*/
 }
 
 
