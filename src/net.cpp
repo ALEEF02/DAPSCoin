@@ -1504,9 +1504,8 @@ void ThreadMessageHandler() {
             {
                 TRY_LOCK(cs_main, lockMain);
                     if (lockMain) {
-                    TRY_LOCK(pnode->cs_sendProcessing, lockSend);
-                    if (lockSend)
-                        g_signals.SendMessages(pnode, pnode == pnodeTrickle || pnode->fWhitelisted);
+                        LOCK(pnode->cs_sendProcessing);
+                        GetNodeSignals().SendMessages(pnode);
                 }
             }
             boost::this_thread::interruption_point();
